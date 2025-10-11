@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - CodeShareit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="apple-logo">
+                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                        <path d="M32.5 22.5C32.5 28.85 27.85 34 21.5 34C15.15 34 10.5 28.85 10.5 22.5C10.5 16.15 15.15 11 21.5 11C27.85 11 32.5 16.15 32.5 22.5Z" fill="currentColor"/>
+                        <path d="M26 10C26 12.2091 24.2091 14 22 14C19.7909 14 18 12.2091 18 10C18 7.79086 19.7909 6 22 6C24.2091 6 26 7.79086 26 10Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <h1 class="login-title">Admin Portal</h1>
+                <p class="login-subtitle">Sign in to manage CodeShareit</p>
+            </div>
+
+            <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label for="username" class="input-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="input-field" 
+                        placeholder="Enter username"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="password" class="input-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="input-field" 
+                        placeholder="Enter password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text">Sign In</span>
+                    <span class="btn-spinner" style="display: none;">
+                        <svg class="spinner" viewBox="0 0 24 24">
+                            <circle class="spinner-circle" cx="12" cy="12" r="10"></circle>
+                        </svg>
+                    </span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p class="footer-note">Admin access only. Unauthorized access is prohibited.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../config.js"></script>
+    <script>
+        // Check if already logged in
+        if (localStorage.getItem('adminAuthenticated') === 'true') {
+            window.location.href = 'dashboard.html';
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = loginBtn.querySelector('.btn-text');
+            const btnSpinner = loginBtn.querySelector('.btn-spinner');
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-flex';
+            errorMessage.style.display = 'none';
+            
+            try {
+                // Attempt to read admin credentials (may be missing/empty)
+                const { data, error } = await supabaseClient
+                    .from('admin_settings')
+                    .select('id, username, password')
+                    .limit(1)
+                    .maybeSingle();
+
+                const isDefault = (username === 'admin' && password === 'admin123');
+
+                // Case 1: Table missing -> allow default creds and seed a row
+                if (error && error.code === '42P01') {
+                    if (isDefault) {
+                        await seedDefaultAdminRow();
+                        localStorage.setItem('adminAuthenticated', 'true');
+                        localStorage.setItem('adminUsername', username);
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                    showAuthError('Invalid username or password');
+                    return;
+                }
+
+                // Case 2: Table exists but empty -> allow default creds and seed
+                if (!error && (!data || (!data.username && !data.password))) {
+                    if (isDefault) {
+                        await seedDefaultAdminRow();
+                        localStorage.setItem('adminAuthenticated', 'true');
+                        localStorage.setItem('adminUsername', username);
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                    showAuthError('Invalid username or password');
+                    return;
+                }
+
+                // Case 3: Table exists with credentials -> verify
+                if (!error && data && data.username === username && data.password === password) {
+                    localStorage.setItem('adminAuthenticated', 'true');
+                    localStorage.setItem('adminUsername', username);
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+
+                // Fallback: also allow default credentials even if row mismatches
+                if (isDefault) {
+                    // Ensure there is at least one row for future logins
+                    await ensureAdminRowExists(username, password, data && data.id);
+                    localStorage.setItem('adminAuthenticated', 'true');
+                    localStorage.setItem('adminUsername', username);
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+
+                showAuthError('Invalid username or password');
+            } catch (err) {
+                console.error('Login error:', err);
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+            }
+        }
+
+        async function seedDefaultAdminRow() {
+            try {
+                await supabaseClient
+                    .from('admin_settings')
+                    .insert([{ username: 'admin', password: 'admin123', site_offline: false }]);
+            } catch (_) { /* ignore seed errors */ }
+        }
+
+        async function ensureAdminRowExists(username, password, existingId) {
+            try {
+                if (existingId) {
+                    // Update the existing row to match used creds
+                    await supabaseClient
+                        .from('admin_settings')
+                        .update({ username, password })
+                        .eq('id', existingId);
+                } else {
+                    // Insert a row if none
+                    await supabaseClient
+                        .from('admin_settings')
+                        .insert([{ username, password, site_offline: false }]);
+                }
+            } catch (_) { /* ignore to not block login */ }
+        }
+
+        function showAuthError(msg) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+            errorMessage.classList.add('shake');
+            setTimeout(() => errorMessage.classList.remove('shake'), 500);
+        }
+    </script>
+</body>
+</html>

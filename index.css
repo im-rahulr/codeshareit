@@ -1,0 +1,799 @@
+*{
+    box-sizing: border-box;
+}
+
+/* Prevent horizontal scrolling at root level */
+html, body {
+    overflow-x: hidden;
+}
+
+/* Uploading animation for Send button */
+.floating-send-btn.uploading {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.95;
+}
+.floating-send-btn.uploading::before {
+    content: "";
+    display: inline-block;
+    width: 14px; height: 14px;
+    margin-right: 8px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-top-color: #ffffff;
+    animation: spinner 0.8s linear infinite;
+    vertical-align: -2px;
+}
+.floating-send-btn.uploading::after {
+    content: "...";
+    margin-left: 4px;
+    animation: dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes spinner {
+    to { transform: rotate(360deg); }
+}
+@keyframes dots {
+    0%, 20% { content: ""; }
+    40% { content: "."; }
+    60% { content: ".."; }
+    80%, 100% { content: "..."; }
+}
+
+/* Fixed positioning for code editor card */
+#codeEditorCard {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80vw;
+    height: 80vh;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    z-index: 10001; /* Above footer (9999) and other elements */
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    color: #0f172a;
+    background-color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 70px; /* Space for white footer */
+}
+
+.btn {
+    padding: 14px 24px;
+    font-size: 1.1rem;
+    font-family: 'Inter', sans-serif;
+    border: none;
+    border-radius: 26px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.05s ease;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.copy-btn {
+    background-color: #0048ff; /* Blue */
+    color: white;
+}
+
+.copy-btn:hover {
+    background-color: #1976D2;
+}
+
+.paste-btn {
+    background-color: black; /* Black */
+    color: white;
+}
+
+.paste-btn:hover {
+    background-color: #555;
+}
+
+/* Layout containers */
+.container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    width: 100%; /* Ensure full width */
+    box-sizing: border-box; /* Include padding in width */
+    overflow: hidden; /* Prevent overflow */
+}
+
+/* Card */
+.card {
+    width: 520px;
+    max-width: calc(100vw - 48px);
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    z-index: 1; /* Ensure cards stay below footer */
+}
+
+/* Special styling for code viewer card */
+#codeViewerCard.card {
+    z-index: 10010; /* Above footer (9999) but below modal (10020) */
+}
+
+/* Special styling for code editor card */
+#codeEditorCard.card {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: 80vh;
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+#codeEditorCard .card-title,
+#codeEditorCard .card-subtitle {
+    flex-shrink: 0; /* Prevent title/subtitle from shrinking */
+}
+
+.card-title {
+    margin: 0 0 6px;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.card-subtitle {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: #6b7280;
+}
+
+/* Meta info under Code Retrieved heading */
+.viewer-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0 10px 0;
+    color: #475569; /* slate-600 */
+    font-size: 14px;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.code-input {
+    padding: 12px;
+    font-size: 1.1rem;
+    font-family: 'Inter', sans-serif;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+}
+
+.cross-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: rgba(220, 38, 38, 0.9);
+    border: none;
+    font-size: 1.5rem;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    transition: all 0.2s ease;
+    z-index: 10040; /* Above everything including floating button (10030) */
+}
+
+.cross-btn:hover {
+    background: rgba(220, 38, 38, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+}
+
+.view-btn {
+    background-color: #0048ff; /* Blue */
+    color: white;
+}
+
+.view-btn:hover {
+    background-color: #1976D2;
+}
+
+/* Footer */
+.site-footer {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #ffffff; /* White background for high visibility */
+    border-top: 2px solid #e5e7eb; /* More prominent border */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px; /* Increased padding for better visibility */
+    font-size: 14px; /* Larger font size */
+    color: #374151; /* Darker text for better contrast */
+    z-index: 9999; /* Always on top - highest priority */
+}
+
+.footer-left {
+    flex: 1;
+}
+
+.footer-right {
+    display: flex;
+    gap: 16px;
+}
+
+.footer-right a {
+    color: #374151; /* Dark text to match footer */
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-weight: 500; /* Slightly bolder for better visibility */
+}
+
+.footer-right a:hover {
+    color: #0048ff; /* Blue highlight on hover */
+    text-decoration: underline;
+}
+
+/* Responsive for fixed editor card */
+@media (max-width: 768px) {
+    #codeEditorCard {
+        width: 95vw;
+        height: 90vh;
+        padding: 16px;
+    }
+}
+
+/* Code Editor Styles */
+.code-editor-container {
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 120px); /* Reserve space for card title/subtitle and margin */
+    max-width: 100%;
+    min-height: 400px;
+    width: 100%; /* Ensure full width */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.code-editor-header {
+    background: #2d2d30;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #3e3e42;
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.window-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.control-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.control-btn.close {
+    background: #ff5f56;
+}
+
+.control-btn.minimize {
+    background: #ffbd2e;
+}
+
+.control-btn.maximize {
+    background: #27ca3f;
+}
+
+.file-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #cccccc;
+    font-size: 13px;
+}
+
+.file-icon {
+    font-size: 14px;
+}
+
+.file-name {
+    font-family: 'Inter', monospace;
+}
+
+.code-editor-wrapper {
+    display: flex;
+    flex: 1; /* take remaining height between header and actions */
+    overflow: hidden; /* keep scroll within textarea */
+    position: relative;
+    min-height: 0; /* Allow flex shrinking */
+    width: 100%; /* Ensure full width */
+}
+
+/* Line numbers styling */
+.line-numbers {
+    background: #1e1e1e;
+    color: #858585;
+    padding: 12px 8px;
+    font-family: 'Inter', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: right;
+    user-select: none;
+    min-width: 50px;
+    max-width: 80px;
+    border-right: 1px solid #3e3e42;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    white-space: pre;
+    flex-shrink: 0; /* Don't shrink */
+}
+
+.editor-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #1e1e1e;
+    overflow: hidden; /* Prevent any overflow */
+    width: 100%; /* Ensure full width */
+}
+
+/* Syntax highlighting overlay */
+.code-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    font-family: 'Inter', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow: auto; /* Allow vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    pointer-events: none;
+    color: #d4d4d4;
+    background: transparent;
+    z-index: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.code-highlight code {
+    color: inherit;
+    font-family: inherit;
+}
+
+/* Syntax highlighting token colors */
+.token.keyword { color: #569cd6; font-weight: 600; }
+.token.string { color: #ce9178; }
+.token.comment { color: #6a9955; font-style: italic; }
+.token.function { color: #dcdcaa; }
+.token.number { color: #b5cea8; }
+.token.operator { color: #d4d4d4; }
+.token.punctuation { color: #d4d4d4; }
+.token.variable { color: #9cdcfe; }
+.token.class-name { color: #4ec9b0; }
+.token.constant { color: #4fc1ff; }
+.token.boolean { color: #569cd6; }
+.token.property { color: #9cdcfe; }
+.token.builtin { color: #4ec9b0; }
+.token.regex { color: #d16969; }
+.token.tag { color: #569cd6; font-weight: 600; }
+.token.attr-name { color: #9cdcfe; }
+.token.attr-value { color: #ce9178; }
+.token.namespace { color: #4ec9b0; }
+
+.code-editor {
+    flex: 1;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border: none;
+    outline: none;
+    padding: 12px;
+    font-family: 'Inter', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    resize: none; /* fixed within card */
+    min-height: 0; /* allow flex to control height */
+    overflow: auto; /* Allow vertical scrolling, hide horizontal */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    position: relative;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    z-index: 2;
+    caret-color: #ffffff;
+}
+
+/* Enhanced code coloring for better readability */
+.code-editor {
+    /* VS Code Dark+ theme colors */
+    caret-color: #ffffff;
+}
+
+.code-editor::selection {
+    background: #264f78;
+}
+
+/* Read-only viewer with better text handling */
+.code-editor[readonly] {
+    white-space: pre;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+
+.floating-send-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    z-index: 10030; /* Above modal (10020) and everything else */
+}
+
+.floating-send-btn:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Syntax highlighting colors */
+.code-editor::placeholder {
+    color: #6a9955;
+    opacity: 0.7;
+}
+
+/* VS Code-like syntax highlighting and formatting */
+.code-editor {
+    tab-size: 4;
+    white-space: pre;
+    /* Enhanced syntax colors */
+    --color-keyword: #569cd6;      /* Blue for keywords */
+    --color-string: #ce9178;       /* Orange for strings */
+    --color-comment: #6a9955;      /* Green for comments */
+    --color-function: #dcdcaa;     /* Yellow for functions */
+    --color-number: #b5cea8;       /* Light green for numbers */
+    --color-variable: #9cdcfe;     /* Light blue for variables */
+    --color-operator: #d4d4d4;     /* White for operators */
+    --color-punctuation: #d4d4d4;  /* White for punctuation */
+    --color-class: #4ec9b0;        /* Cyan for classes */
+    --color-error: #f48771;        /* Red for errors */
+}
+
+/* Actions bar at bottom of editor */
+.editor-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #252526; /* dark footer like VS Code */
+    border-top: 1px solid #3e3e42;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    min-height: 60px; /* Ensure minimum height for buttons */
+}
+
+.send-btn {
+    background-color: #28a745; /* Green */
+    color: #ffffff;
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+}
+
+.send-btn:hover { 
+    background-color: #218838; 
+}
+
+/* Secondary button (light) for subtle actions */
+.btn.btn-secondary {
+    background-color: #f1f5f9; /* slate-100 */
+    color: #0f172a;
+}
+.btn.btn-secondary:hover { background-color: #e2e8f0; }
+
+/* Make the code editor look more like VS Code */
+.code-editor-footer {
+    background: #252526;
+    padding: 12px;
+    border-top: 1px solid #3e3e42;
+}
+
+/* Responsive design for code editor */
+@media (max-width: 768px) {
+    /* Keep line numbers as a vertical gutter on mobile too */
+    .code-editor-wrapper {
+        flex-direction: row; /* remain side-by-side */
+        min-height: 250px;
+    }
+
+    .line-numbers {
+        min-width: 32px;
+        max-width: 60px;
+        display: block; /* keep vertical */
+        overflow: hidden; /* no horizontal scroll */
+        overflow-x: hidden; /* Hide horizontal scrollbar */
+        border-right: 1px solid #3e3e42;
+        border-bottom: none;
+        padding: 8px 4px;
+        white-space: pre; /* ensure one number per line */
+        font-size: 12px;
+        flex-shrink: 0; /* Don't shrink */
+    }
+
+    .code-editor {
+        min-height: 200px;
+        padding: 8px; /* base padding */
+        padding-right: 68px; /* still reserve space for button */
+        padding-bottom: 68px;
+        font-size: 12px;
+    }
+
+    .card {
+        padding: 20px;
+        width: calc(100vw - 32px);
+        max-width: none;
+    }
+
+    .card-title {
+        font-size: 28px;
+    }
+
+    .floating-send-btn {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 20px;
+        font-size: 13px;
+        z-index: 10030; /* Above modal (10020) and everything else */
+    }
+    
+    /* Mobile editor card adjustments */
+    #codeEditorCard, #codeEditorCard.card {
+        width: 95vw;
+        height: 92vh;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .code-editor-container {
+        height: calc(100% - 80px);
+        min-height: 300px;
+    }
+    
+    #codeViewerCard .code-editor-container {
+        max-height: calc(100vh - 180px);
+    }
+    
+    .code-editor-header {
+        padding: 6px 10px;
+    }
+    
+    .file-tab {
+        font-size: 11px;
+    }
+    
+    .editor-actions {
+        padding: 10px;
+        flex-wrap: nowrap;
+        gap: 8px;
+        flex-shrink: 0;
+        min-height: 56px;
+    }
+    
+    .share-btn, .send-btn {
+        flex: 1;
+        min-width: 90px;
+        max-width: none;
+        font-size: 0.9rem;
+        padding: 10px 14px;
+        white-space: nowrap;
+    }
+}
+
+/* Share banner (themed) */
+.share-banner {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    margin-top: 16px;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+}
+
+.share-banner-left {
+    width: 6px;
+    border-radius: 8px;
+    background: #0048ff; /* primary blue to match .copy-btn */
+}
+
+.share-banner-content { flex: 1; }
+
+.share-banner-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.share-banner-sub {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.share-banner-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.share-code-badge {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: #1e293b; /* dark slate to match theme */
+    color: #ffffff;
+    font-family: 'Inter', monospace;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+/* When shown, fade/slide in */
+.share-banner.show {
+    opacity: 1;
+    transform: translateY(0);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10020; /* above editor card (10001) and footer (9999) */
+}
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(2,6,23,0.55);
+    backdrop-filter: blur(2px);
+}
+.modal-dialog {
+    position: relative;
+    width: min(560px, calc(100vw - 40px));
+    margin: 10vh auto;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    overflow: hidden;
+    transform: translateY(8px);
+    opacity: 0;
+    transition: transform 150ms ease, opacity 150ms ease;
+}
+.modal.open .modal-dialog { transform: translateY(0); opacity: 1; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
+.modal-title { font-weight: 800; font-size: 20px; }
+.modal-body { padding: 20px; text-align: center; }
+.big-share-code {
+    font-size: clamp(48px, 10vw, 72px);
+    letter-spacing: 6px;
+    font-weight: 900;
+    font-family: 'Inter', monospace;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: 16px;
+    padding: 20px 28px;
+    display: inline-block;
+}
+.modal-note { margin-top: 12px; color: #475569; font-size: 14px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; }
+
+@media (max-width: 480px) {
+    .modal-dialog { margin: 15vh auto; }
+}
+
+/* Inline alert for not-found code */
+.inline-alert {
+    background: #fff7ed; /* warm light */
+    border: 1px solid #fed7aa; /* orange-200 */
+    color: #9a3412; /* orange-800 */
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+@keyframes shakeX {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+}
+.inline-alert.shake { animation: shakeX 300ms ease; }
+
+@media (max-width: 768px) {
+    .share-banner {
+        padding: 14px;
+        gap: 12px;
+    }
+    .share-banner-title { font-size: 15px; }
+    .share-banner-sub { font-size: 13px; }
+    
+    .site-footer {
+        font-size: 12px;
+        padding: 10px 16px;
+    }
+    
+    .footer-right {
+        gap: 12px;
+    }
+}
+
+/* Additional mobile responsiveness */
+@media (max-width: 480px) {
+    .btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+    
+    .code-editor-header .window-controls {
+        gap: 4px;
+    }
+    
+    .control-btn {
+        width: 10px;
+        height: 10px;
+    }
+}

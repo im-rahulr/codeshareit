@@ -1,0 +1,5 @@
+# Redirect all routes to index.html for SPA routing
+/*    /index.html   200
+
+# Admin panel routes
+/admin/*    /admin/index.html   200
