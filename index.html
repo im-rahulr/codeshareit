@@ -10,6 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- support.team@hi2.in
+    y1%sJg8I -->
     <main class="container">
         <section class="card" id="mainCard">
             <h1 class="card-title">CodeShareit</h1>
@@ -93,12 +95,14 @@
                         <span class="file-icon">📄</span>
                         <span class="file-name">retrieved-code.txt</span>
                     </div>
+                    <div class="header-actions">
+                        <button class="btn header-copy-btn" onclick="copyToClipboard()">Copy Code</button>
+                    </div>
                 </div>
                 <div class="code-editor-wrapper">
                     <div class="line-numbers" id="viewerLineNumbers">1\n</div>
                     <div class="editor-container">
                         <textarea class="code-editor" id="codeViewer" readonly wrap="off" spellcheck="false" onscroll="syncViewerScroll()"></textarea>
-                        <button class="floating-send-btn" onclick="copyToClipboard()">Copy Code</button>
                     </div>
                 </div>
             </div>

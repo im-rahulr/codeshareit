@@ -442,6 +442,46 @@ body {
     caret-color: #ffffff;
 }
 
+/* Viewer header actions (desktop) */
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-copy-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+    background: #28a745;
+    color: #ffffff;
+}
+
+/* Adjust viewer padding now that copy button is in header */
+#codeViewerCard .code-editor {
+    padding-right: 12px;
+    padding-bottom: 12px;
+}
+
+/* Desktop-only: fix viewer height and keep internal scroll */
+@media (min-width: 769px) {
+    #codeViewerCard .code-editor-container {
+        height: 70vh;
+        max-height: 70vh;
+    }
+    #codeViewerCard .code-editor-wrapper {
+        overflow: hidden; /* contain scroll to textarea */
+    }
+    #codeViewerCard .editor-container {
+        overflow: hidden;
+    }
+    #codeViewerCard .code-editor {
+        overflow: auto; /* vertical scroll inside box */
+        overflow-x: hidden;
+    }
+}
+
 /* Enhanced code coloring for better readability */
 .code-editor {
     /* VS Code Dark+ theme colors */

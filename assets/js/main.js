@@ -190,10 +190,16 @@ async function copyToClipboard() {
     } catch (err) {
         // Fallback for older browsers / environments
         try {
-            codeViewer.removeAttribute('readonly');
-            codeViewer.select();
+            const temp = document.createElement('textarea');
+            temp.style.position = 'fixed';
+            temp.style.top = '-1000px';
+            temp.style.left = '-1000px';
+            temp.setAttribute('readonly', '');
+            temp.value = codeViewer.value;
+            document.body.appendChild(temp);
+            temp.select();
             document.execCommand('copy');
-            codeViewer.setAttribute('readonly', '');
+            document.body.removeChild(temp);
             alert('Code copied to clipboard!');
         } catch (e) {
             console.error('Copy failed:', e);
